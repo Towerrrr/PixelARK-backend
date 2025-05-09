@@ -11,6 +11,10 @@ spring:
     url: jdbc:mysql://localhost:3306/pixel_ark
     username: root
     password: 1234
+  servlet:
+    multipart:
+      # 最大上传文件大小
+      max-file-size: 10MB
 mybatis-plus:
   configuration:
     map-underscore-to-camel-case: false
@@ -32,3 +36,5 @@ knife4j:
         api-rule: package
         api-rule-resources:
           - com.t0r.pixelarkbackend.controller
+
+

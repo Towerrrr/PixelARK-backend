@@ -1,11 +1,16 @@
 package com.t0r.pixelarkbackend.service;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.t0r.pixelarkbackend.model.dto.picture.PictureQueryRequest;
 import com.t0r.pixelarkbackend.model.dto.picture.PictureUploadRequest;
 import com.t0r.pixelarkbackend.model.entity.Picture;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.t0r.pixelarkbackend.model.entity.User;
 import com.t0r.pixelarkbackend.model.vo.PictureVO;
 import org.springframework.web.multipart.MultipartFile;
+
+import javax.servlet.http.HttpServletRequest;
 
 /**
 * @author Towerrrr
@@ -26,4 +31,34 @@ public interface PictureService extends IService<Picture> {
                             PictureUploadRequest pictureUploadRequest,
                             User loginUser);
 
+    /**
+     * 获取查询条件
+     *
+     * @param pictureQueryRequest
+     * @return
+     */
+    public QueryWrapper<Picture> getQueryWrapper(PictureQueryRequest pictureQueryRequest);
+
+    /**
+     * 获取图片封装
+     * @param picture
+     * @param request
+     * @return
+     */
+    public PictureVO getPictureVO(Picture picture, HttpServletRequest request);
+
+    /**
+     * 分页获取图片封装
+     * @param picturePage
+     * @param request
+     * @return
+     */
+    public Page<PictureVO> getPictureVOPage(Page<Picture> picturePage, HttpServletRequest request);
+
+    /**
+     * 校验图片信息
+     *
+     * @param picture
+     */
+    public void validPicture(Picture picture);
 }

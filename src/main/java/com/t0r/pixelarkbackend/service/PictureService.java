@@ -3,6 +3,7 @@ package com.t0r.pixelarkbackend.service;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.t0r.pixelarkbackend.model.dto.picture.PictureQueryRequest;
+import com.t0r.pixelarkbackend.model.dto.picture.PictureReviewRequest;
 import com.t0r.pixelarkbackend.model.dto.picture.PictureUploadRequest;
 import com.t0r.pixelarkbackend.model.entity.Picture;
 import com.baomidou.mybatisplus.extension.service.IService;
@@ -61,4 +62,13 @@ public interface PictureService extends IService<Picture> {
      * @param picture
      */
     public void validPicture(Picture picture);
+
+    /**
+     * 图片审核
+     *
+     * @param pictureReviewRequest
+     * @param loginUser
+     */
+    void doPictureReview(PictureReviewRequest pictureReviewRequest, User loginUser);
+
 }

@@ -10,10 +10,7 @@ import com.t0r.pixelarkbackend.constant.UserConstant;
 import com.t0r.pixelarkbackend.exception.BusinessException;
 import com.t0r.pixelarkbackend.exception.ErrorCode;
 import com.t0r.pixelarkbackend.exception.ThrowUtils;
-import com.t0r.pixelarkbackend.model.dto.picture.PictureEditRequest;
-import com.t0r.pixelarkbackend.model.dto.picture.PictureQueryRequest;
-import com.t0r.pixelarkbackend.model.dto.picture.PictureUpdateRequest;
-import com.t0r.pixelarkbackend.model.dto.picture.PictureUploadRequest;
+import com.t0r.pixelarkbackend.model.dto.picture.*;
 import com.t0r.pixelarkbackend.model.entity.Picture;
 import com.t0r.pixelarkbackend.model.entity.PictureTagCategory;
 import com.t0r.pixelarkbackend.model.entity.User;
@@ -208,5 +205,14 @@ public class PictureController {
         return ResultUtils.success(pictureTagCategory);
     }
 
+    @PostMapping("/review")
+    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
+    public BaseResponse<Boolean> doPictureReview(@RequestBody PictureReviewRequest pictureReviewRequest,
+                                                 HttpServletRequest request) {
+        ThrowUtils.throwIf(pictureReviewRequest == null, ErrorCode.PARAMS_ERROR);
+        User loginUser = userService.getLoginUser(request);
+        pictureService.doPictureReview(pictureReviewRequest, loginUser);
+        return ResultUtils.success(true);
+    }
 
 }

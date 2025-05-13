@@ -14,6 +14,7 @@ import com.t0r.pixelarkbackend.model.dto.picture.*;
 import com.t0r.pixelarkbackend.model.entity.Picture;
 import com.t0r.pixelarkbackend.model.entity.PictureTagCategory;
 import com.t0r.pixelarkbackend.model.entity.User;
+import com.t0r.pixelarkbackend.model.enums.PictureReviewStatusEnum;
 import com.t0r.pixelarkbackend.model.vo.PictureVO;
 import com.t0r.pixelarkbackend.service.PictureService;
 import com.t0r.pixelarkbackend.service.UserService;
@@ -153,6 +154,8 @@ public class PictureController {
         long size = pictureQueryRequest.getPageSize();
         // 限制爬虫
         ThrowUtils.throwIf(size > 20, ErrorCode.PARAMS_ERROR);
+        // 普通用户默认只能查看已过审的数据
+        pictureQueryRequest.setReviewStatus(PictureReviewStatusEnum.PASS.getValue());
         // 查询数据库
         Page<Picture> picturePage = pictureService.page(new Page<>(current, size),
                 pictureService.getQueryWrapper(pictureQueryRequest));

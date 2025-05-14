@@ -4,6 +4,7 @@ import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.RandomUtil;
+import cn.hutool.http.HttpUtil;
 import com.qcloud.cos.model.PutObjectResult;
 import com.qcloud.cos.model.ciModel.persistence.ImageInfo;
 import com.t0r.pixelarkbackend.config.CosClientConfig;
@@ -75,6 +76,51 @@ public class FileManager {
             this.deleteTempFile(file);
         }
     }
+
+    /**
+     * 通过 URL 上传图片
+     * @param fileUrl
+     * @param uploadPathPrefix
+     * @return
+     */
+    public UploadPictureResult uploadPictureByUrl(String fileUrl, String uploadPathPrefix) {
+        // todo 校验图片
+        validPicture(fileUrl);
+        // 图片上传地址
+        String uuid = RandomUtil.randomString(16);
+        String originFilename = FileUtil.mainName(fileUrl);
+        String uploadFilename = String.format("%s_%s.%s", DateUtil.formatDate(new Date()), uuid,
+                FileUtil.getSuffix(originFilename));
+        String uploadPath = String.format("/%s/%s", uploadPathPrefix, uploadFilename);
+        File file = null;
+        try {
+            // 创建临时文件
+            file = File.createTempFile(uploadPath, null);
+            HttpUtil.downloadFile(fileUrl, file);
+            // 上传图片
+            PutObjectResult putObjectResult = cosManager.putPictureObject(uploadPath, file);
+            ImageInfo imageInfo = putObjectResult.getCiUploadResult().getOriginalInfo().getImageInfo();
+            // 封装返回结果
+            UploadPictureResult uploadPictureResult = new UploadPictureResult();
+            int picWidth = imageInfo.getWidth();
+            int picHeight = imageInfo.getHeight();
+            double picScale = NumberUtil.round(picWidth * 1.0 / picHeight, 2).doubleValue();
+            uploadPictureResult.setPicName(FileUtil.mainName(originFilename));
+            uploadPictureResult.setPicWidth(picWidth);
+            uploadPictureResult.setPicHeight(picHeight);
+            uploadPictureResult.setPicScale(picScale);
+            uploadPictureResult.setPicFormat(imageInfo.getFormat());
+            uploadPictureResult.setPicSize(FileUtil.size(file));
+            uploadPictureResult.setUrl(cosClientConfig.getHost() + "/" + uploadPath);
+            return uploadPictureResult;
+        } catch (Exception e) {
+            log.error("图片上传到对象存储失败", e);
+            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "上传失败");
+        } finally {
+            this.deleteTempFile(file);
+        }
+    }
+
 
     /**
      * 校验文件

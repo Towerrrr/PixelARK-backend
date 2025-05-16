@@ -28,6 +28,11 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
+/**
+ * 文件管理器
+ * @Deprecated 已废弃，改用 upload 包模板方法优化
+ */
+@Deprecated
 @Service
 @Slf4j
 public class FileManager {
@@ -91,7 +96,6 @@ public class FileManager {
      * @return
      */
     public UploadPictureResult uploadPictureByUrl(String fileUrl, String uploadPathPrefix) {
-        // todo 校验图片
         validPicture(fileUrl);
         // 图片上传地址
         String uuid = RandomUtil.randomString(16);

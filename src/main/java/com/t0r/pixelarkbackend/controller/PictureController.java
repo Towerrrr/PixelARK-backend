@@ -3,6 +3,8 @@ package com.t0r.pixelarkbackend.controller;
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import com.t0r.pixelarkbackend.annotation.AuthCheck;
 import com.t0r.pixelarkbackend.common.BaseResponse;
 import com.t0r.pixelarkbackend.common.DeleteRequest;
@@ -20,7 +22,6 @@ import com.t0r.pixelarkbackend.model.vo.PictureVO;
 import com.t0r.pixelarkbackend.service.PictureService;
 import com.t0r.pixelarkbackend.service.UserService;
 import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.util.DigestUtils;
@@ -46,6 +47,13 @@ public class PictureController {
 
     @Resource
     private StringRedisTemplate stringRedisTemplate;
+
+    private final Cache<String, String> LOCAL_CACHE =
+            Caffeine.newBuilder().initialCapacity(1024)
+                    .maximumSize(10000L)
+                    // 缓存 5 分钟移除
+                    .expireAfterWrite(5L, TimeUnit.MINUTES)
+                    .build();
 
     /**
      * 上传图片（可重新上传）
@@ -222,6 +230,46 @@ public class PictureController {
         // 5 - 10 分钟随机过期，防止雪崩
         int cacheExpireTime = 300 +  RandomUtil.randomInt(0, 300);
         valueOps.set(redisKey, cacheValue, cacheExpireTime, TimeUnit.SECONDS);
+
+        // 返回结果
+        return ResultUtils.success(pictureVOPage);
+    }
+
+    /**
+     * 通过本地缓存分页获取图片列表（封装类）
+     */
+    @PostMapping("/list/page/vo/cache")
+    public BaseResponse<Page<PictureVO>> listPictureVOByPageWithNativeCache(@RequestBody PictureQueryRequest pictureQueryRequest,
+                                                                      HttpServletRequest request) {
+
+        long current = pictureQueryRequest.getCurrent();
+        long size = pictureQueryRequest.getPageSize();
+        // 限制爬虫
+        ThrowUtils.throwIf(size > 20, ErrorCode.PARAMS_ERROR);
+        // 普通用户默认只能查看已过审的数据
+        pictureQueryRequest.setReviewStatus(PictureReviewStatusEnum.PASS.getValue());
+
+        // 构建缓存 key
+        String queryCondition = JSONUtil.toJsonStr(pictureQueryRequest);
+        String hashKey = DigestUtils.md5DigestAsHex(queryCondition.getBytes());
+        String cacheKey = "listPictureVOByPage:" + hashKey;
+        // 从本地缓存中查询
+        String cachedValue = LOCAL_CACHE.getIfPresent(cacheKey);
+        if (cachedValue != null) {
+            // 如果缓存命中，返回结果
+            Page<PictureVO> cachedPage = JSONUtil.toBean(cachedValue, Page.class);
+            return ResultUtils.success(cachedPage);
+        }
+
+        // 查询数据库
+        Page<Picture> picturePage = pictureService.page(new Page<>(current, size),
+                pictureService.getQueryWrapper(pictureQueryRequest));
+        // 获取封装类
+        Page<PictureVO> pictureVOPage = pictureService.getPictureVOPage(picturePage, request);
+
+        // 存入本地缓存
+        String cacheValue = JSONUtil.toJsonStr(pictureVOPage);
+        LOCAL_CACHE.put(cacheKey, cacheValue);
 
         // 返回结果
         return ResultUtils.success(pictureVOPage);

@@ -10,6 +10,7 @@ import com.t0r.pixelarkbackend.model.entity.Picture;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.t0r.pixelarkbackend.model.entity.User;
 import com.t0r.pixelarkbackend.model.vo.PictureVO;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
@@ -92,4 +93,10 @@ public interface PictureService extends IService<Picture> {
             User loginUser
     );
 
+    /**
+     * 异步清理图片文件
+     *
+     * @param oldPicture
+     */
+    public void clearPictureFile(Picture oldPicture);
 }

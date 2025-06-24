@@ -2,6 +2,9 @@ server:
   port: 8123
   servlet:
     context-path: /api
+    session:
+      cookie:
+        max-age: 2592000 # cookie 30天过期
 spring:
   application:
     name: pixelark-backend
@@ -20,6 +23,9 @@ spring:
     host: 127.0.0.1
     port: 6379
     timeout: 5000
+  session:
+    store-type: redis
+    timeout: 2592000 # session 30天过期
 mybatis-plus:
   configuration:
     map-underscore-to-camel-case: false

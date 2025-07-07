@@ -1,7 +1,11 @@
 package com.t0r.pixelarkbackend.service;
 
+import com.t0r.pixelarkbackend.exception.BusinessException;
+import com.t0r.pixelarkbackend.exception.ErrorCode;
+import com.t0r.pixelarkbackend.exception.ThrowUtils;
 import com.t0r.pixelarkbackend.model.entity.Space;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.t0r.pixelarkbackend.model.enums.SpaceLevelEnum;
 
 /**
 * @author Towerrrr
@@ -9,5 +13,17 @@ import com.baomidou.mybatisplus.extension.service.IService;
 * @createDate 2025-06-27 22:38:00
 */
 public interface SpaceService extends IService<Space> {
+
+    // todo 基础服务方法
+
+    /**
+     * 校验空间数据
+     *
+     * @param space
+     * @param add
+     */
+    public void validSpace(Space space, boolean add);
+
+    // todo 根据空间级别自动填充限额
 
 }

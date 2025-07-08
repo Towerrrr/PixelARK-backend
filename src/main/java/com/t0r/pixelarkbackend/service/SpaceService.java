@@ -24,6 +24,11 @@ public interface SpaceService extends IService<Space> {
      */
     public void validSpace(Space space, boolean add);
 
-    // todo 根据空间级别自动填充限额
+    /**
+     * 根据空间级别，自动填充限额
+     *
+     * @param space
+     */
+    public void fillSpaceBySpaceLevel(Space space);
 
 }

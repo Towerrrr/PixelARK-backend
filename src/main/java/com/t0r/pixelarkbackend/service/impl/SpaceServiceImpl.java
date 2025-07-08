@@ -53,7 +53,27 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space>
         }
     }
 
-    // todo 根据空间级别自动填充限额
+    /**
+     * 根据空间级别，自动填充限额
+     *
+     * @param space
+     */
+    @Override
+    public void fillSpaceBySpaceLevel(Space space) {
+        // 根据空间级别，自动填充限额
+        SpaceLevelEnum spaceLevelEnum = SpaceLevelEnum.getEnumByValue(space.getSpaceLevel());
+        if (spaceLevelEnum != null) {
+            long maxSize = spaceLevelEnum.getMaxSize();
+            if (space.getMaxSize() == null) {
+                space.setMaxSize(maxSize);
+            }
+            long maxCount = spaceLevelEnum.getMaxCount();
+            if (space.getMaxCount() == null) {
+                space.setMaxCount(maxCount);
+            }
+        }
+    }
+
 
 }
 

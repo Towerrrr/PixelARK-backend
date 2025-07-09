@@ -5,11 +5,19 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.t0r.pixelarkbackend.exception.BusinessException;
 import com.t0r.pixelarkbackend.exception.ErrorCode;
 import com.t0r.pixelarkbackend.exception.ThrowUtils;
+import com.t0r.pixelarkbackend.model.dto.space.SpaceAddRequest;
 import com.t0r.pixelarkbackend.model.entity.Space;
+import com.t0r.pixelarkbackend.model.entity.User;
 import com.t0r.pixelarkbackend.model.enums.SpaceLevelEnum;
 import com.t0r.pixelarkbackend.service.SpaceService;
 import com.t0r.pixelarkbackend.mapper.SpaceMapper;
+import com.t0r.pixelarkbackend.service.UserService;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.support.TransactionTemplate;
+
+import javax.annotation.Resource;
+import java.util.Optional;
 
 /**
 * @author Towerrrr
@@ -20,7 +28,59 @@ import org.springframework.stereotype.Service;
 public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space>
     implements SpaceService{
 
+    @Resource
+    UserService userService;
+
+    @Resource
+    private TransactionTemplate transactionTemplate;
+
     // todo 基础服务方法
+
+    /**
+     * 创建空间
+     *
+     * @param spaceAddRequest
+     * @param loginUser
+     * @return
+     */
+    @Override
+    public long addSpace(SpaceAddRequest spaceAddRequest, User loginUser) {
+        // 在此处将实体类和 DTO 进行转换
+        Space space = new Space();
+        BeanUtils.copyProperties(spaceAddRequest, space);
+        // 默认值
+        if (StrUtil.isBlank(spaceAddRequest.getSpaceName())) {
+            space.setSpaceName("默认空间");
+        }
+        if (spaceAddRequest.getSpaceLevel() == null) {
+            space.setSpaceLevel(SpaceLevelEnum.COMMON.getValue());
+        }
+        // 填充数据
+        this.fillSpaceBySpaceLevel(space);
+        // 数据校验
+        this.validSpace(space, true);
+        Long userId = loginUser.getId();
+        space.setUserId(userId);
+        // 权限校验
+        if (SpaceLevelEnum.COMMON.getValue() != spaceAddRequest.getSpaceLevel() && !userService.isAdmin(loginUser)) {
+            throw new BusinessException(ErrorCode.NO_AUTH_ERROR, "无权限创建指定级别的空间");
+        }
+        // 针对用户进行加锁
+        String lock = String.valueOf(userId).intern();
+        synchronized (lock) {
+            Long newSpaceId = transactionTemplate.execute(status -> {
+                boolean exists = this.lambdaQuery().eq(Space::getUserId, userId).exists();
+                ThrowUtils.throwIf(exists, ErrorCode.OPERATION_ERROR, "每个用户仅能有一个私有空间");
+                // 写入数据库
+                boolean result = this.save(space);
+                ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
+                // 返回新写入的数据 id
+                return space.getId();
+            });
+            // 返回结果是包装类，可以做一些处理
+            return Optional.ofNullable(newSpaceId).orElse(-1L);
+        }
+    }
 
     /**
      * 校验空间数据
@@ -73,7 +133,6 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space>
             }
         }
     }
-
 
 }
 

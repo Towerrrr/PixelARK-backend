@@ -8,6 +8,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.t0r.pixelarkbackend.model.entity.User;
 import com.t0r.pixelarkbackend.model.vo.PictureVO;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
@@ -124,6 +125,7 @@ public interface PictureService extends IService<Picture> {
      */
     void editPicture(PictureEditRequest pictureEditRequest, User loginUser);
 
+    void editPictureByBatch(PictureEditByBatchRequest pictureEditByBatchRequest, User loginUser);
 
-    public List<PictureVO> searchPictureByColor(Long spaceId, String picColor, User loginUser);
+    List<PictureVO> searchPictureByColor(Long spaceId, String picColor, User loginUser);
 }

@@ -21,7 +21,7 @@ public interface SpaceService extends IService<Space> {
      * @param loginUser
      * @return
      */
-    public long addSpace(SpaceAddRequest spaceAddRequest, User loginUser);
+    long addSpace(SpaceAddRequest spaceAddRequest, User loginUser);
 
     /**
      * 校验空间数据
@@ -29,13 +29,20 @@ public interface SpaceService extends IService<Space> {
      * @param space
      * @param add
      */
-    public void validSpace(Space space, boolean add);
+    void validSpace(Space space, boolean add);
 
     /**
      * 根据空间级别，自动填充限额
      *
      * @param space
      */
-    public void fillSpaceBySpaceLevel(Space space);
+    void fillSpaceBySpaceLevel(Space space);
 
+    /**
+     * 空间权限校验
+     *
+     * @param loginUser
+     * @param space
+     */
+    void checkSpaceAuth(User loginUser, Space space);
 }

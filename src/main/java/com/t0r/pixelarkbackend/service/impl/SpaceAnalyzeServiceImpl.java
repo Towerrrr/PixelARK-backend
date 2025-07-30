@@ -49,7 +49,6 @@ public class SpaceAnalyzeServiceImpl implements SpaceAnalyzeService {
             ThrowUtils.throwIf(spaceId == null || spaceId <= 0, ErrorCode.PARAMS_ERROR);
             Space space = spaceService.getById(spaceId);
             ThrowUtils.throwIf(space == null, ErrorCode.NOT_FOUND_ERROR, "空间不存在");
-            // todo 添加空间权限校验
             spaceService.checkSpaceAuth(loginUser, space);
         }
     }

@@ -1,9 +1,9 @@
 package com.t0r.pixelarkbackend.service;
 
-import com.t0r.pixelarkbackend.model.dto.space.SpaceAnalyzeRequest;
-import com.t0r.pixelarkbackend.model.dto.space.SpaceUsageAnalyzeRequest;
-import com.t0r.pixelarkbackend.model.dto.space.SpaceUsageAnalyzeResponse;
+import com.t0r.pixelarkbackend.model.dto.space.*;
 import com.t0r.pixelarkbackend.model.entity.User;
+
+import java.util.List;
 
 public interface SpaceAnalyzeService {
 
@@ -15,4 +15,6 @@ public interface SpaceAnalyzeService {
      * @return SpaceUsageAnalyzeResponse 分析结果
      */
     SpaceUsageAnalyzeResponse getSpaceUsageAnalyze(SpaceUsageAnalyzeRequest spaceUsageAnalyzeRequest, User loginUser);
+
+    List<SpaceCategoryAnalyzeResponse> getSpaceCategoryAnalyze(SpaceCategoryAnalyzeRequest spaceCategoryAnalyzeRequest, User loginUser);
 }

@@ -4,6 +4,8 @@ import com.t0r.pixelarkbackend.common.BaseResponse;
 import com.t0r.pixelarkbackend.common.ResultUtils;
 import com.t0r.pixelarkbackend.exception.ErrorCode;
 import com.t0r.pixelarkbackend.exception.ThrowUtils;
+import com.t0r.pixelarkbackend.model.dto.space.SpaceCategoryAnalyzeRequest;
+import com.t0r.pixelarkbackend.model.dto.space.SpaceCategoryAnalyzeResponse;
 import com.t0r.pixelarkbackend.model.dto.space.SpaceUsageAnalyzeRequest;
 import com.t0r.pixelarkbackend.model.dto.space.SpaceUsageAnalyzeResponse;
 import com.t0r.pixelarkbackend.model.entity.User;
@@ -16,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.util.List;
 
 @RestController
 @RequestMapping("/space/analyze")
@@ -40,5 +43,14 @@ public class SpaceAnalyzeController {
         SpaceUsageAnalyzeResponse spaceUsageAnalyze = spaceAnalyzeService.getSpaceUsageAnalyze(spaceUsageAnalyzeRequest, loginUser);
         return ResultUtils.success(spaceUsageAnalyze);
     }
+
+    @PostMapping("/category")
+    public BaseResponse<List<SpaceCategoryAnalyzeResponse>> getSpaceCategoryAnalyze(@RequestBody SpaceCategoryAnalyzeRequest spaceCategoryAnalyzeRequest, HttpServletRequest request) {
+        ThrowUtils.throwIf(spaceCategoryAnalyzeRequest == null, ErrorCode.PARAMS_ERROR);
+        User loginUser = userService.getLoginUser(request);
+        List<SpaceCategoryAnalyzeResponse> resultList = spaceAnalyzeService.getSpaceCategoryAnalyze(spaceCategoryAnalyzeRequest, loginUser);
+        return ResultUtils.success(resultList);
+    }
+
 }
 

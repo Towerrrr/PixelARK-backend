@@ -5,9 +5,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.t0r.pixelarkbackend.exception.BusinessException;
 import com.t0r.pixelarkbackend.exception.ErrorCode;
 import com.t0r.pixelarkbackend.exception.ThrowUtils;
-import com.t0r.pixelarkbackend.model.dto.space.SpaceAnalyzeRequest;
-import com.t0r.pixelarkbackend.model.dto.space.SpaceUsageAnalyzeRequest;
-import com.t0r.pixelarkbackend.model.dto.space.SpaceUsageAnalyzeResponse;
+import com.t0r.pixelarkbackend.model.dto.space.*;
 import com.t0r.pixelarkbackend.model.entity.Picture;
 import com.t0r.pixelarkbackend.model.entity.Space;
 import com.t0r.pixelarkbackend.model.entity.User;
@@ -19,6 +17,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class SpaceAnalyzeServiceImpl implements SpaceAnalyzeService {
@@ -135,5 +134,34 @@ public class SpaceAnalyzeServiceImpl implements SpaceAnalyzeService {
         }
     }
 
+    @Override
+    public List<SpaceCategoryAnalyzeResponse> getSpaceCategoryAnalyze(SpaceCategoryAnalyzeRequest spaceCategoryAnalyzeRequest, User loginUser) {
+        ThrowUtils.throwIf(spaceCategoryAnalyzeRequest == null, ErrorCode.PARAMS_ERROR);
+
+        // 检查权限
+        checkSpaceAnalyzeAuth(spaceCategoryAnalyzeRequest, loginUser);
+
+        // 构造查询条件
+        QueryWrapper<Picture> queryWrapper = new QueryWrapper<>();
+        // 根据分析范围补充查询条件
+        fillAnalyzeQueryWrapper(spaceCategoryAnalyzeRequest, queryWrapper);
+
+        // 使用 MyBatis-Plus 分组查询
+        queryWrapper.select("category AS category",
+                        "COUNT(*) AS count",
+                        "SUM(picSize) AS totalSize")
+                .groupBy("category");
+
+        // 查询并转换结果
+        return pictureService.getBaseMapper().selectMaps(queryWrapper)
+                .stream()
+                .map(result -> {
+                    String category = result.get("category") != null ? result.get("category").toString() : "未分类";
+                    Long count = ((Number) result.get("count")).longValue();
+                    Long totalSize = ((Number) result.get("totalSize")).longValue();
+                    return new SpaceCategoryAnalyzeResponse(category, count, totalSize);
+                })
+                .collect(Collectors.toList());
+    }
 
 }

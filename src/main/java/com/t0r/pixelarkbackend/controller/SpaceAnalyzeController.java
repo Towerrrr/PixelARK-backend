@@ -4,10 +4,7 @@ import com.t0r.pixelarkbackend.common.BaseResponse;
 import com.t0r.pixelarkbackend.common.ResultUtils;
 import com.t0r.pixelarkbackend.exception.ErrorCode;
 import com.t0r.pixelarkbackend.exception.ThrowUtils;
-import com.t0r.pixelarkbackend.model.dto.space.SpaceCategoryAnalyzeRequest;
-import com.t0r.pixelarkbackend.model.dto.space.SpaceCategoryAnalyzeResponse;
-import com.t0r.pixelarkbackend.model.dto.space.SpaceUsageAnalyzeRequest;
-import com.t0r.pixelarkbackend.model.dto.space.SpaceUsageAnalyzeResponse;
+import com.t0r.pixelarkbackend.model.dto.space.*;
 import com.t0r.pixelarkbackend.model.entity.User;
 import com.t0r.pixelarkbackend.service.SpaceAnalyzeService;
 import com.t0r.pixelarkbackend.service.UserService;
@@ -49,6 +46,14 @@ public class SpaceAnalyzeController {
         ThrowUtils.throwIf(spaceCategoryAnalyzeRequest == null, ErrorCode.PARAMS_ERROR);
         User loginUser = userService.getLoginUser(request);
         List<SpaceCategoryAnalyzeResponse> resultList = spaceAnalyzeService.getSpaceCategoryAnalyze(spaceCategoryAnalyzeRequest, loginUser);
+        return ResultUtils.success(resultList);
+    }
+
+    @PostMapping("/tag")
+    public BaseResponse<List<SpaceTagAnalyzeResponse>> getSpaceTagAnalyze(@RequestBody SpaceTagAnalyzeRequest spaceTagAnalyzeRequest, HttpServletRequest request) {
+        ThrowUtils.throwIf(spaceTagAnalyzeRequest == null, ErrorCode.PARAMS_ERROR);
+        User loginUser = userService.getLoginUser(request);
+        List<SpaceTagAnalyzeResponse> resultList = spaceAnalyzeService.getSpaceTagAnalyze(spaceTagAnalyzeRequest, loginUser);
         return ResultUtils.success(resultList);
     }
 

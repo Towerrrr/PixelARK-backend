@@ -18,6 +18,7 @@ import com.t0r.pixelarkbackend.service.UserService;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -198,5 +199,35 @@ public class SpaceAnalyzeServiceImpl implements SpaceAnalyzeService {
                 .collect(Collectors.toList());
     }
 
+    @Override
+    public List<SpaceSizeAnalyzeResponse> getSpaceSizeAnalyze(SpaceSizeAnalyzeRequest spaceSizeAnalyzeRequest, User loginUser) {
+        ThrowUtils.throwIf(spaceSizeAnalyzeRequest == null, ErrorCode.PARAMS_ERROR);
+
+        // 检查权限
+        checkSpaceAnalyzeAuth(spaceSizeAnalyzeRequest, loginUser);
+
+        // 构造查询条件
+        QueryWrapper<Picture> queryWrapper = new QueryWrapper<>();
+        fillAnalyzeQueryWrapper(spaceSizeAnalyzeRequest, queryWrapper);
+
+        // 查询所有符合条件的图片大小
+        queryWrapper.select("picSize");
+        List<Long> picSizes = pictureService.getBaseMapper().selectObjs(queryWrapper)
+                .stream()
+                .map(size -> ((Number) size).longValue())
+                .collect(Collectors.toList());
+
+        // 定义分段范围，注意使用有序 Map
+        Map<String, Long> sizeRanges = new LinkedHashMap<>();
+        sizeRanges.put("<100KB", picSizes.stream().filter(size -> size < 100 * 1024).count());
+        sizeRanges.put("100KB-500KB", picSizes.stream().filter(size -> size >= 100 * 1024 && size < 500 * 1024).count());
+        sizeRanges.put("500KB-1MB", picSizes.stream().filter(size -> size >= 500 * 1024 && size < 1 * 1024 * 1024).count());
+        sizeRanges.put(">1MB", picSizes.stream().filter(size -> size >= 1 * 1024 * 1024).count());
+
+        // 转换为响应对象
+        return sizeRanges.entrySet().stream()
+                .map(entry -> new SpaceSizeAnalyzeResponse(entry.getKey(), entry.getValue()))
+                .collect(Collectors.toList());
+    }
 
 }

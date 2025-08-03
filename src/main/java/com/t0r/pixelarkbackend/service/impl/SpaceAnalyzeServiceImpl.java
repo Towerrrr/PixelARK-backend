@@ -230,4 +230,46 @@ public class SpaceAnalyzeServiceImpl implements SpaceAnalyzeService {
                 .collect(Collectors.toList());
     }
 
+    @Override
+    public List<SpaceUserAnalyzeResponse> getSpaceUserAnalyze(SpaceUserAnalyzeRequest spaceUserAnalyzeRequest, User loginUser) {
+        ThrowUtils.throwIf(spaceUserAnalyzeRequest == null, ErrorCode.PARAMS_ERROR);
+        // 检查权限
+        checkSpaceAnalyzeAuth(spaceUserAnalyzeRequest, loginUser);
+
+        // 构造查询条件
+        QueryWrapper<Picture> queryWrapper = new QueryWrapper<>();
+        Long userId = spaceUserAnalyzeRequest.getUserId();
+        queryWrapper.eq(ObjUtil.isNotNull(userId), "userId", userId);
+        fillAnalyzeQueryWrapper(spaceUserAnalyzeRequest, queryWrapper);
+
+        // 分析维度：每日、每周、每月
+        String timeDimension = spaceUserAnalyzeRequest.getTimeDimension();
+        switch (timeDimension) {
+            case "day":
+                queryWrapper.select("DATE_FORMAT(createTime, '%Y-%m-%d') AS period", "COUNT(*) AS count");
+                break;
+            case "week":
+                queryWrapper.select("YEARWEEK(createTime) AS period", "COUNT(*) AS count");
+                break;
+            case "month":
+                queryWrapper.select("DATE_FORMAT(createTime, '%Y-%m') AS period", "COUNT(*) AS count");
+                break;
+            default:
+                throw new BusinessException(ErrorCode.PARAMS_ERROR, "不支持的时间维度");
+        }
+
+        // 分组和排序
+        queryWrapper.groupBy("period").orderByAsc("period");
+
+        // 查询结果并转换
+        List<Map<String, Object>> queryResult = pictureService.getBaseMapper().selectMaps(queryWrapper);
+        return queryResult.stream()
+                .map(result -> {
+                    String period = result.get("period").toString();
+                    Long count = ((Number) result.get("count")).longValue();
+                    return new SpaceUserAnalyzeResponse(period, count);
+                })
+                .collect(Collectors.toList());
+    }
+
 }

@@ -7,11 +7,14 @@ import com.t0r.pixelarkbackend.exception.ErrorCode;
 import com.t0r.pixelarkbackend.exception.ThrowUtils;
 import com.t0r.pixelarkbackend.model.dto.space.SpaceAddRequest;
 import com.t0r.pixelarkbackend.model.entity.Space;
+import com.t0r.pixelarkbackend.model.entity.SpaceUser;
 import com.t0r.pixelarkbackend.model.entity.User;
 import com.t0r.pixelarkbackend.model.enums.SpaceLevelEnum;
+import com.t0r.pixelarkbackend.model.enums.SpaceRoleEnum;
 import com.t0r.pixelarkbackend.model.enums.SpaceTypeEnum;
 import com.t0r.pixelarkbackend.service.SpaceService;
 import com.t0r.pixelarkbackend.mapper.SpaceMapper;
+import com.t0r.pixelarkbackend.service.SpaceUserService;
 import com.t0r.pixelarkbackend.service.UserService;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
@@ -30,7 +33,10 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space>
     implements SpaceService{
 
     @Resource
-    UserService userService;
+    private UserService userService;
+
+    @Resource
+    private SpaceUserService spaceUserService;
 
     @Resource
     private TransactionTemplate transactionTemplate;
@@ -83,8 +89,18 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space>
                 // 写入数据库
                 boolean result = this.save(space);
                 ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
-                // 返回新写入的数据 id
+                // 如果是团队空间，关联新增团队成员记录
+                if (SpaceTypeEnum.TEAM.getValue() == spaceAddRequest.getSpaceType()) {
+                    SpaceUser spaceUser = new SpaceUser();
+                    spaceUser.setSpaceId(space.getId());
+                    spaceUser.setUserId(userId);
+                    spaceUser.setSpaceRole(SpaceRoleEnum.ADMIN.getValue());
+                    result = spaceUserService.save(spaceUser);
+                    ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR, "创建团队成员记录失败");
+                }
+// 返回新写入的数据 id
                 return space.getId();
+
             });
 
             // 返回结果是包装类，可以做一些处理

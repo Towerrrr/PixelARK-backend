@@ -115,7 +115,8 @@ public class SpaceUserServiceImpl extends ServiceImpl<SpaceUserMapper, SpaceUser
         if (spaceId != null && spaceId > 0) {
             Space space = spaceService.getById(spaceId);
             // todo 添加方法
-            SpaceVO spaceVO = spaceService.getSpaceVO(space, request);
+//            SpaceVO spaceVO = spaceService.getSpaceVO(space, request);
+            SpaceVO spaceVO = null;
             spaceUserVO.setSpace(spaceVO);
         }
         return spaceUserVO;

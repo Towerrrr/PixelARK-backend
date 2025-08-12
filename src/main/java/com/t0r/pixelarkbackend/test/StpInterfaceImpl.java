@@ -1,5 +1,8 @@
 package com.t0r.pixelarkbackend.test;
 
+import cn.dev33.satoken.stp.StpInterface;
+import org.springframework.stereotype.Component;
+
 import java.util.ArrayList;
 import java.util.List;
 

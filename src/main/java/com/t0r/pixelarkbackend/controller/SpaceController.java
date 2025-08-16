@@ -10,13 +10,16 @@ import com.t0r.pixelarkbackend.exception.ThrowUtils;
 import com.t0r.pixelarkbackend.model.dto.space.SpaceUpdateRequest;
 import com.t0r.pixelarkbackend.model.entity.Space;
 import com.t0r.pixelarkbackend.model.entity.SpaceLevel;
+import com.t0r.pixelarkbackend.model.entity.User;
 import com.t0r.pixelarkbackend.model.enums.SpaceLevelEnum;
+import com.t0r.pixelarkbackend.model.vo.SpaceVO;
 import com.t0r.pixelarkbackend.service.SpaceService;
 import com.t0r.pixelarkbackend.service.UserService;
 import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -32,6 +35,20 @@ public class SpaceController {
     UserService userService;
 
     // todo 其他基础接口
+
+    @GetMapping("/get/vo")
+    public BaseResponse<SpaceVO> getSpaceVOById(long id, HttpServletRequest request) {
+        ThrowUtils.throwIf(id <= 0, ErrorCode.PARAMS_ERROR);
+        // 查询数据库
+        Space space = spaceService.getById(id);
+        ThrowUtils.throwIf(space == null, ErrorCode.NOT_FOUND_ERROR);
+        SpaceVO spaceVO = spaceService.getSpaceVO(space, request);
+        User loginUser = userService.getLoginUser(request);
+        List<String> permissionList = spaceUserAuthManager.getPermissionList(space, loginUser);
+        spaceVO.setPermissionList(permissionList);
+        // 获取封装类
+        return ResultUtils.success(spaceVO);
+    }
 
     @PostMapping("/update")
     @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)

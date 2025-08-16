@@ -7,6 +7,7 @@ import com.t0r.pixelarkbackend.auth.model.SpaceUserAuthConfig;
 import com.t0r.pixelarkbackend.auth.model.SpaceUserRole;
 import com.t0r.pixelarkbackend.model.entity.Space;
 import com.t0r.pixelarkbackend.model.entity.SpaceUser;
+import com.t0r.pixelarkbackend.model.entity.User;
 import com.t0r.pixelarkbackend.model.enums.SpaceRoleEnum;
 import com.t0r.pixelarkbackend.model.enums.SpaceTypeEnum;
 import com.t0r.pixelarkbackend.service.SpaceUserService;

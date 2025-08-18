@@ -8,6 +8,7 @@ import com.t0r.pixelarkbackend.annotation.AuthCheck;
 import com.t0r.pixelarkbackend.api.imagesearch.ImageSearchApiFacade;
 import com.t0r.pixelarkbackend.api.imagesearch.model.ImageSearchResult;
 import com.t0r.pixelarkbackend.api.imagesearch.model.dto.SearchPictureByPictureRequest;
+import com.t0r.pixelarkbackend.auth.SpaceUserAuthManager;
 import com.t0r.pixelarkbackend.auth.StpKit;
 import com.t0r.pixelarkbackend.auth.annotation.SaSpaceCheckPermission;
 import com.t0r.pixelarkbackend.auth.model.SpaceUserPermissionConstant;
@@ -54,6 +55,9 @@ public class PictureController {
 
     @Resource
     private SpaceService spaceService;
+
+    @Resource
+    private SpaceUserAuthManager spaceUserAuthManager;
 
     @Resource
     private StringRedisTemplate stringRedisTemplate;

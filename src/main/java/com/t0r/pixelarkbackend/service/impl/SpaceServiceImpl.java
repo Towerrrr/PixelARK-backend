@@ -12,6 +12,8 @@ import com.t0r.pixelarkbackend.model.entity.User;
 import com.t0r.pixelarkbackend.model.enums.SpaceLevelEnum;
 import com.t0r.pixelarkbackend.model.enums.SpaceRoleEnum;
 import com.t0r.pixelarkbackend.model.enums.SpaceTypeEnum;
+import com.t0r.pixelarkbackend.model.vo.SpaceVO;
+import com.t0r.pixelarkbackend.model.vo.UserVO;
 import com.t0r.pixelarkbackend.service.SpaceService;
 import com.t0r.pixelarkbackend.mapper.SpaceMapper;
 import com.t0r.pixelarkbackend.service.SpaceUserService;
@@ -21,6 +23,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
 import java.util.Optional;
 
 /**
@@ -42,6 +45,19 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space>
     private TransactionTemplate transactionTemplate;
 
     // todo 基础服务方法
+
+    public SpaceVO getSpaceVO(Space space, HttpServletRequest request) {
+        // 对象转封装类
+        SpaceVO spaceVO = SpaceVO.objToVo(space);
+        // 关联查询用户信息
+        Long userId = space.getUserId();
+        if (userId != null && userId > 0) {
+            User user = userService.getById(userId);
+            UserVO userVO = userService.getUserVO(user);
+            spaceVO.setUser(userVO);
+        }
+        return spaceVO;
+    }
 
     /**
      * 创建空间
@@ -98,7 +114,7 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space>
                     result = spaceUserService.save(spaceUser);
                     ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR, "创建团队成员记录失败");
                 }
-// 返回新写入的数据 id
+                // 返回新写入的数据 id
                 return space.getId();
 
             });

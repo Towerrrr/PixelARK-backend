@@ -4,6 +4,9 @@ import com.t0r.pixelarkbackend.model.dto.space.SpaceAddRequest;
 import com.t0r.pixelarkbackend.model.entity.Space;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.t0r.pixelarkbackend.model.entity.User;
+import com.t0r.pixelarkbackend.model.vo.SpaceVO;
+
+import javax.servlet.http.HttpServletRequest;
 
 /**
  * @author Towerrrr
@@ -13,6 +16,8 @@ import com.t0r.pixelarkbackend.model.entity.User;
 public interface SpaceService extends IService<Space> {
 
     // todo 基础服务方法
+
+    SpaceVO getSpaceVO(Space space, HttpServletRequest request);
 
     /**
      * 创建空间

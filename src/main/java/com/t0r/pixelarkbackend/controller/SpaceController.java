@@ -1,6 +1,7 @@
 package com.t0r.pixelarkbackend.controller;
 
 import com.t0r.pixelarkbackend.annotation.AuthCheck;
+import com.t0r.pixelarkbackend.auth.SpaceUserAuthManager;
 import com.t0r.pixelarkbackend.common.BaseResponse;
 import com.t0r.pixelarkbackend.common.ResultUtils;
 import com.t0r.pixelarkbackend.constant.UserConstant;
@@ -33,6 +34,9 @@ public class SpaceController {
 
     @Resource
     UserService userService;
+
+    @Resource
+    SpaceUserAuthManager spaceUserAuthManager;
 
     // todo 其他基础接口
 

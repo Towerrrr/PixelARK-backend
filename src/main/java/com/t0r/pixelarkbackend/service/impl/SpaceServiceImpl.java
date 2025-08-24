@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.t0r.pixelarkbackend.exception.BusinessException;
 import com.t0r.pixelarkbackend.exception.ErrorCode;
 import com.t0r.pixelarkbackend.exception.ThrowUtils;
+import com.t0r.pixelarkbackend.manager.sharding.DynamicShardingManager;
 import com.t0r.pixelarkbackend.model.dto.space.SpaceAddRequest;
 import com.t0r.pixelarkbackend.model.entity.Space;
 import com.t0r.pixelarkbackend.model.entity.SpaceUser;
@@ -43,6 +44,9 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space>
 
     @Resource
     private TransactionTemplate transactionTemplate;
+
+    @Resource
+    private DynamicShardingManager dynamicShardingManager;
 
     // todo 基础服务方法
 
@@ -114,9 +118,10 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space>
                     result = spaceUserService.save(spaceUser);
                     ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR, "创建团队成员记录失败");
                 }
+                // 创建分表
+                dynamicShardingManager.createSpacePictureTable(space);
                 // 返回新写入的数据 id
                 return space.getId();
-
             });
 
             // 返回结果是包装类，可以做一些处理

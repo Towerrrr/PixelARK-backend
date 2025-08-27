@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.t0r.pixelarkbackend.annotation.AuthCheck;
+import com.t0r.pixelarkbackend.api.aliyunai.model.AliYunAiApi;
 import com.t0r.pixelarkbackend.api.aliyunai.model.CreateOutPaintingTaskResponse;
 import com.t0r.pixelarkbackend.api.aliyunai.model.GetOutPaintingTaskResponse;
 import com.t0r.pixelarkbackend.api.imagesearch.ImageSearchApiFacade;
@@ -42,7 +43,6 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -64,6 +64,9 @@ public class PictureController {
 
     @Resource
     private StringRedisTemplate stringRedisTemplate;
+
+    @Resource
+    private AliYunAiApi aliYunAiApi;
 
     private final Cache<String, String> LOCAL_CACHE =
             Caffeine.newBuilder().initialCapacity(1024)

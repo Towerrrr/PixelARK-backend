@@ -1,5 +1,6 @@
 package com.t0r.pixelarkbackend.service.impl;
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.ObjUtil;
 import cn.hutool.core.util.StrUtil;
@@ -7,11 +8,13 @@ import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.t0r.pixelarkbackend.api.aliyunai.model.AliYunAiApi;
+import com.t0r.pixelarkbackend.api.aliyunai.model.CreateOutPaintingTaskRequest;
+import com.t0r.pixelarkbackend.api.aliyunai.model.CreateOutPaintingTaskResponse;
 import com.t0r.pixelarkbackend.exception.BusinessException;
 import com.t0r.pixelarkbackend.exception.ErrorCode;
 import com.t0r.pixelarkbackend.exception.ThrowUtils;
 import com.t0r.pixelarkbackend.manager.CosManager;
-import com.t0r.pixelarkbackend.manager.FileManager;
 import com.t0r.pixelarkbackend.manager.upload.FilePictureUpload;
 import com.t0r.pixelarkbackend.manager.upload.PictureUploadTemplate;
 import com.t0r.pixelarkbackend.manager.upload.UrlPictureUpload;
@@ -38,7 +41,6 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
-import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
@@ -46,7 +48,6 @@ import java.awt.*;
 import java.io.IOException;
 import java.util.*;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 /**
@@ -76,6 +77,9 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
 
     @Resource
     TransactionTemplate transactionTemplate;
+
+    @Resource
+    AliYunAiApi aliYunAiApi;
 
     /**
      * 上传图片
@@ -674,6 +678,25 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
             throw new BusinessException(ErrorCode.OPERATION_ERROR, "名称解析错误");
         }
     }
+
+    @Override
+    public CreateOutPaintingTaskResponse createPictureOutPaintingTask(CreatePictureOutPaintingTaskRequest createPictureOutPaintingTaskRequest, User loginUser) {
+        // 获取图片信息
+        Long pictureId = createPictureOutPaintingTaskRequest.getPictureId();
+        Picture picture = Optional.ofNullable(this.getById(pictureId))
+                .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND_ERROR));
+        // 权限校验
+        checkPictureAuth(loginUser, picture);
+        // 构造请求参数
+        CreateOutPaintingTaskRequest taskRequest = new CreateOutPaintingTaskRequest();
+        CreateOutPaintingTaskRequest.Input input = new CreateOutPaintingTaskRequest.Input();
+        input.setImageUrl(picture.getUrl());
+        taskRequest.setInput(input);
+        BeanUtil.copyProperties(createPictureOutPaintingTaskRequest, taskRequest);
+        // 创建任务
+        return aliYunAiApi.createOutPaintingTask(taskRequest);
+    }
+
 
 }
 

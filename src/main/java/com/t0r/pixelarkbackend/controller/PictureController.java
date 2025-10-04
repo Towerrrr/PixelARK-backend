@@ -193,12 +193,12 @@ public class PictureController {
      */
     @PostMapping("/list/page")
     @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
-    public BaseResponse<Page<Picture>> listPictureByPage(@RequestBody PictureQueryRequest pictureQueryRequest) {
-        long current = pictureQueryRequest.getCurrent();
-        long size = pictureQueryRequest.getPageSize();
+    public BaseResponse<Page<Picture>> listPictureByPage(@RequestBody PicturePageQueryRequest picturePageQueryRequest) {
+        long current = picturePageQueryRequest.getPageRequest().getCurrent();
+        long size = picturePageQueryRequest.getPageRequest().getPageSize();
         // 查询数据库
         Page<Picture> picturePage = pictureService.page(new Page<>(current, size),
-                pictureService.getQueryWrapper(pictureQueryRequest));
+                pictureService.getQueryWrapper(picturePageQueryRequest.getPictureQueryRequest()));
         return ResultUtils.success(picturePage);
     }
 
@@ -207,9 +207,10 @@ public class PictureController {
      */
     @PostMapping("/list/page/vo")
     public BaseResponse<Page<PictureVO>> listPictureVOByPage(
-            @RequestBody PictureQueryRequest pictureQueryRequest, HttpServletRequest request) {
-        long current = pictureQueryRequest.getCurrent();
-        long size = pictureQueryRequest.getPageSize();
+            @RequestBody PicturePageQueryRequest picturePageQueryRequest, HttpServletRequest request) {
+        long current = picturePageQueryRequest.getPageRequest().getCurrent();
+        long size = picturePageQueryRequest.getPageRequest().getPageSize();
+        PictureQueryRequest pictureQueryRequest = picturePageQueryRequest.getPictureQueryRequest();
         // 限制爬虫
         ThrowUtils.throwIf(size > 20, ErrorCode.PARAMS_ERROR);
         // 空间权限校验

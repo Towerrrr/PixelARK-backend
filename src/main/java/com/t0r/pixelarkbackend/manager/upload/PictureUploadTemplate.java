@@ -47,6 +47,7 @@ public abstract class PictureUploadTemplate {
         File file = null;
         try {
             // 创建临时文件
+            // todo url 上传问题
             file = File.createTempFile(uploadPath, null);
             // 处理文件来源（本地或 URL）
             processFile(inputSource, file);

@@ -20,6 +20,7 @@ import com.t0r.pixelarkbackend.mapper.SpaceMapper;
 import com.t0r.pixelarkbackend.service.SpaceUserService;
 import com.t0r.pixelarkbackend.service.UserService;
 import org.springframework.beans.BeanUtils;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
 
@@ -40,13 +41,14 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space>
     private UserService userService;
 
     @Resource
+    @Lazy
     private SpaceUserService spaceUserService;
 
     @Resource
     private TransactionTemplate transactionTemplate;
 
-    @Resource
-    private DynamicShardingManager dynamicShardingManager;
+//    @Resource
+//    private DynamicShardingManager dynamicShardingManager;
 
     // todo 基础服务方法
 
@@ -119,7 +121,7 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space>
                     ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR, "创建团队成员记录失败");
                 }
                 // 创建分表
-                dynamicShardingManager.createSpacePictureTable(space);
+//                dynamicShardingManager.createSpacePictureTable(space);
                 // 返回新写入的数据 id
                 return space.getId();
             });

@@ -110,5 +110,8 @@ create table if not exists space_user
     INDEX idx_userId (userId)                       -- 提升按用户查询的性能
 ) comment '空间用户关联' collate = utf8mb4_unicode_ci;
 
+-- 添加新列
+ALTER TABLE picture
+    ADD COLUMN thumbnailUrl varchar(256)  null;
 
 

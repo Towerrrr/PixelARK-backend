@@ -441,6 +441,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
                 fileUrl = fileUrl.substring(0, questionMarkIndex);
             }
             // 上传图片
+            // todo 用 CompletableFuture 优化成异步上传
             PictureUploadRequest pictureUploadRequest = new PictureUploadRequest();
             if (StrUtil.isNotBlank(namePrefix)) {
                 // 设置图片名称，序号连续递增

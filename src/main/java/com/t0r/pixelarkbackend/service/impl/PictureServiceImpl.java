@@ -48,6 +48,8 @@ import java.awt.*;
 import java.io.IOException;
 import java.util.*;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 /**
@@ -428,8 +430,12 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
             throw new BusinessException(ErrorCode.OPERATION_ERROR, "获取元素失败");
         }
         Elements imgElementList = div.select("img.mimg");
-        int uploadCount = 0;
-        for (Element imgElement : imgElementList) {
+        // 使用原子变量保证线程安全
+        AtomicInteger uploadCount = new AtomicInteger(0);
+        List<CompletableFuture<Void>> futures = new ArrayList<>();
+        // 控制只上传 count 张图片
+        for (int i = 0; i < imgElementList.size() && uploadCount.get() < count; i++) {
+            Element imgElement = imgElementList.get(i);
             String fileUrl = imgElement.attr("src");
             if (StrUtil.isBlank(fileUrl)) {
                 log.info("当前链接为空，已跳过: {}", fileUrl);
@@ -440,26 +446,32 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
             if (questionMarkIndex > -1) {
                 fileUrl = fileUrl.substring(0, questionMarkIndex);
             }
-            // 上传图片
-            // todo 用 CompletableFuture 优化成异步上传
+
+            String picName = namePrefix + (i + 1); // 为每个任务分配唯一名称
+            String finalFileUrl = fileUrl;
             PictureUploadRequest pictureUploadRequest = new PictureUploadRequest();
-            if (StrUtil.isNotBlank(namePrefix)) {
-                // 设置图片名称，序号连续递增
-                pictureUploadRequest.setPicName(namePrefix + (uploadCount + 1));
-            }
-            try {
-                PictureVO pictureVO = this.uploadPicture(fileUrl, pictureUploadRequest, loginUser);
-                log.info("图片上传成功, id = {}", pictureVO.getId());
-                uploadCount++;
-            } catch (Exception e) {
-                log.error("图片上传失败", e);
-                continue;
-            }
-            if (uploadCount >= count) {
-                break;
-            }
+            pictureUploadRequest.setPicName(picName);
+
+            // 用异步方式上传图片
+            CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
+                if (uploadCount.get() >= count) {
+                    return;
+                }
+                try {
+                    PictureVO pictureVO = this.uploadPicture(finalFileUrl, pictureUploadRequest, loginUser);
+                    log.info("图片上传成功, id = {}", pictureVO.getId());
+                    uploadCount.incrementAndGet();
+                } catch (Exception e) {
+                    log.error("图片上传失败", e);
+                }
+            });
+            futures.add(future);
         }
-        return uploadCount;
+        // 等待所有任务完成
+        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+
+        // 返回成功上传的图片数
+        return uploadCount.get();
     }
 
     /**
